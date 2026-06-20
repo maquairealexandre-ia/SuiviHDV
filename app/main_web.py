@@ -379,10 +379,54 @@ class Handler(BaseHTTPRequestHandler):
     def _send(self, content, ctype="application/json"):
         self.send_response(200)
         self.send_header("Content-Type", ctype + "; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         if isinstance(content, str):
             content = content.encode("utf-8")
         self.wfile.write(content)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def do_POST(self):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length)
+            data = json.loads(body)
+        except Exception:
+            self._send('{"ok":false}')
+            return
+
+        if self.path == "/api/push" and MOTEUR:
+            if MOTEUR.addon_data is None:
+                MOTEUR.addon_data = {"items": {}, "mes_ventes": [], "mes_annonces": [],
+                                     "or_par_joueur": {}, "scan_complet": False, "derniere_maj": 0}
+            d = MOTEUR.addon_data
+            d["joueur"] = data.get("joueur", d.get("joueur", ""))
+            d["realm"]  = data.get("realm",  d.get("realm", ""))
+
+            if "ventes" in data:
+                # Fusion sans doublon (clé = sujet|total)
+                vus = {(v["sujet"], v["total"]) for v in d["mes_ventes"]}
+                for v in data["ventes"]:
+                    cle = (v.get("sujet", ""), v.get("total", 0))
+                    if cle not in vus:
+                        d["mes_ventes"].append(v)
+                        vus.add(cle)
+                d["mes_ventes"] = sorted(d["mes_ventes"], key=lambda x: x["t"], reverse=True)[:500]
+
+            if "annonces" in data:
+                d["mes_annonces"] = data["annonces"]
+
+            MOTEUR.changed_flag = True
+            self._send('{"ok":true}')
+            return
+
+        self._send('{"ok":false}')
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -635,7 +679,7 @@ async function enregistrer(){await window.pywebview.api.enregistrer(file.value,a
 
 
 def demarrer_serveur():
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server = ThreadingHTTPServer(("127.0.0.1", config.LOCAL_PORT), Handler)
     port = server.server_address[1]
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return port

@@ -64,6 +64,13 @@ function S:scanMailbox()
         count = count + 1
         if count > 2000 then SuiviHDVDB.ventes_vus[k] = nil end
     end
+
+    -- Push temps réel vers l'application
+    SuiviHDV:push({
+        joueur  = SuiviHDVDB.joueur,
+        realm   = SuiviHDVDB.realm,
+        ventes  = SuiviHDVDB.mes_ventes,
+    })
 end
 
 -- ------------------------------------------------------------------ annonces actives
@@ -85,4 +92,11 @@ function S:readOwnAuctions()
             })
         end
     end
+
+    -- Push temps réel vers l'application
+    SuiviHDV:push({
+        joueur   = SuiviHDVDB.joueur,
+        realm    = SuiviHDVDB.realm,
+        annonces = SuiviHDVDB.mes_annonces,
+    })
 end

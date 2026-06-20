@@ -11,6 +11,7 @@ import urllib.request
 
 APP_NAME = "SuiviHDV"
 VERSION = "1.1.4"   # <-- numéro de version de CETTE build. À incrémenter à chaque release.
+LOCAL_PORT = 19765  # Port du serveur local — l'addon WoW pousse les données ici en temps réel.
 
 # Dépôt GitHub où sont publiées les releases.
 GITHUB_OWNER = "maquairealexandre-ia"

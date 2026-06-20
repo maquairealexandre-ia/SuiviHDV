@@ -7,6 +7,51 @@ SuiviHDVDB = SuiviHDVDB or {}
 SuiviHDV = {}
 local addon = SuiviHDV
 
+-- ------------------------------------------------------------------ push temps réel
+
+local PUSH_URL = "http://127.0.0.1:19765/api/push"
+
+-- Sérialiseur JSON minimal (entiers, chaînes, booléens, tableaux, objets)
+local function jsonStr(s)
+    s = tostring(s):gsub('\\', '\\\\'):gsub('"', '\\"'):gsub('\n', '\\n'):gsub('\r', '')
+    return '"' .. s .. '"'
+end
+local function jsonVal(v)
+    local t = type(v)
+    if t == "nil"     then return "null"
+    elseif t == "boolean" then return v and "true" or "false"
+    elseif t == "number"  then return tostring(math.floor(v))
+    elseif t == "string"  then return jsonStr(v)
+    elseif t == "table" then
+        if #v > 0 then
+            local parts = {}
+            for i = 1, #v do parts[i] = jsonVal(v[i]) end
+            return "[" .. table.concat(parts, ",") .. "]"
+        else
+            local parts = {}
+            for k, val in pairs(v) do
+                parts[#parts+1] = jsonStr(k) .. ":" .. jsonVal(val)
+            end
+            return "{" .. table.concat(parts, ",") .. "}"
+        end
+    end
+    return "null"
+end
+
+-- Envoie un payload JSON au serveur local (C_WebRequest, WoW 10.1+)
+-- Échoue silencieusement si l'API n'est pas disponible ou si le serveur est fermé.
+function addon:push(payload)
+    if not (C_WebRequest and C_WebRequest.Fetch) then return end
+    local body = jsonVal(payload)
+    pcall(C_WebRequest.Fetch, PUSH_URL, {
+        method  = "POST",
+        headers = { ["Content-Type"] = "application/json" },
+        body    = body,
+    })
+end
+
+-- ------------------------------------------------------------------ print
+
 function addon:print(msg)
     print("|cffffd100[SuiviHDV]|r " .. tostring(msg))
 end
