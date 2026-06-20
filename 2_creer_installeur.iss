@@ -35,7 +35,7 @@ Name: "desktopicon"; Description: "Creer un raccourci sur le Bureau"; GroupDescr
 
 [Files]
 ; Application principale (dossier onedir — moins suspect pour les antivirus)
-Source: "dist\SuiviHDV\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "app\dist\SuiviHDV\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Addon WoW — installe directement dans le dossier choisi par l'utilisateur
 Source: "addon\SuiviHDV\*"; DestDir: "{code:GetWowAddonsDir}\SuiviHDV"; Flags: ignoreversion recursesubdirs createallsubdirs
