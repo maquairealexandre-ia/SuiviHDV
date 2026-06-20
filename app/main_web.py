@@ -292,12 +292,21 @@ def _telecharger_maj():
 
         MAJ_INFO["progression"] = 100
         time.sleep(0.5)
-        # Lance l'installeur détaché puis quitte proprement
+        # Script batch intermédiaire : attend 6 s que WebView2 libère les fichiers,
+        # puis lance l'installeur. Sans ce délai, les DLL _internal sont verrouillées
+        # et Inno Setup ne peut pas les écraser (la version ne change jamais).
+        bat = os.path.join(tempfile.gettempdir(), "suivi_update.bat")
+        with open(bat, "w", encoding="ascii") as f:
+            f.write("@echo off\n")
+            f.write("timeout /t 6 /nobreak >nul\n")
+            f.write(f'start "" "{installeur}"\n')
+            f.write('del "%~f0"\n')
         subprocess.Popen(
-            [installeur],
+            ["cmd.exe", "/c", bat],
             creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+            close_fds=True,
         )
-        time.sleep(1)
+        time.sleep(0.5)
         os._exit(0)
 
     except Exception as e:

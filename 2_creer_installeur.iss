@@ -5,7 +5,7 @@
 ; ============================================================
 
 #define MonApp "Suivi Hotel des Ventes"
-#define MaVersion "1.1.3"
+#define MaVersion "1.1.4"
 #define MonEditeur "Alexandre"
 #define MonExe "SuiviHDV.exe"
 
@@ -22,6 +22,8 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 SetupIconFile=app\icon.ico
+CloseApplications=yes
+CloseApplicationsFilter=SuiviHDV.exe
 UninstallDisplayIcon={app}\{#MonExe}
 PrivilegesRequired=lowest
 
