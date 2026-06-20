@@ -5,7 +5,7 @@
 ; ============================================================
 
 #define MonApp "Suivi Hotel des Ventes"
-#define MaVersion "1.1.5"
+#define MaVersion "1.1.6"
 #define MonEditeur "Alexandre"
 #define MonExe "SuiviHDV.exe"
 
