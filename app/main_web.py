@@ -292,9 +292,13 @@ def _telecharger_maj():
 
         MAJ_INFO["progression"] = 100
         time.sleep(0.5)
-        # Lance l'installeur et ferme l'application
-        subprocess.Popen([installeur])
-        os.kill(os.getpid(), 9)
+        # Lance l'installeur détaché puis quitte proprement
+        subprocess.Popen(
+            [installeur],
+            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
+        time.sleep(1)
+        os._exit(0)
 
     except Exception as e:
         MAJ_INFO["erreur"] = str(e)[:200]
