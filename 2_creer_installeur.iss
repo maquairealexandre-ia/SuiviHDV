@@ -5,7 +5,7 @@
 ; ============================================================
 
 #define MonApp "Suivi Hotel des Ventes"
-#define MaVersion "1.1.0"
+#define MaVersion "1.1.1"
 #define MonEditeur "Alexandre"
 #define MonExe "SuiviHDV.exe"
 
@@ -32,8 +32,8 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "desktopicon"; Description: "Creer un raccourci sur le Bureau"; GroupDescription: "Raccourcis :"
 
 [Files]
-; Application principale
-Source: "dist\{#MonExe}"; DestDir: "{app}"; Flags: ignoreversion
+; Application principale (dossier onedir — moins suspect pour les antivirus)
+Source: "dist\SuiviHDV\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Addon WoW (copie dans un sous-dossier pour que l'utilisateur le trouve facilement)
 Source: "addon\SuiviHDV\*"; DestDir: "{app}\Addon_WoW\SuiviHDV"; Flags: ignoreversion recursesubdirs

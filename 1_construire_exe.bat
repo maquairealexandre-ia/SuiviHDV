@@ -1,7 +1,7 @@
 @echo off
 REM ============================================================
 REM   Construction de SuiviHDV
-REM   Genere dist\SuiviHDV.exe (autonome, sans Python)
+REM   Genere dist\SuiviHDV\ (dossier complet, moins suspect AV)
 REM ============================================================
 
 echo.
@@ -12,7 +12,7 @@ python -m pip install pyinstaller pywebview
 echo.
 echo === Etape 2/3 : construction de l'executable ===
 cd app
-pyinstaller --noconfirm --onefile --windowed ^
+pyinstaller --noconfirm --onedir --windowed ^
   --name "SuiviHDV" ^
   --icon "icon.ico" ^
   --add-data "icon.ico;." ^
@@ -24,11 +24,12 @@ pyinstaller --noconfirm --onefile --windowed ^
 echo.
 echo === Etape 3/3 : recuperation du resultat ===
 cd ..
-if exist "app\dist\SuiviHDV.exe" (
+if exist "app\dist\SuiviHDV\SuiviHDV.exe" (
+    if exist "dist\SuiviHDV" rmdir /S /Q "dist\SuiviHDV"
     if not exist "dist" mkdir dist
-    copy /Y "app\dist\SuiviHDV.exe" "dist\SuiviHDV.exe"
+    xcopy /E /Y /I "app\dist\SuiviHDV" "dist\SuiviHDV" > nul
     echo.
-    echo TERMINE ^! Votre application est ici : dist\SuiviHDV.exe
+    echo TERMINE ^! Votre application est ici : dist\SuiviHDV\
 ) else (
     echo ERREUR : la construction a echoue. Lisez les messages ci-dessus.
 )
