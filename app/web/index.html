@@ -134,7 +134,8 @@
   .tr .or{text-align:right; color:var(--or); font-weight:500;}
   .tr .pct{text-align:right; font-weight:600;}
 
-  .pied{text-align:center; padding:10px; font-size:11px; color:var(--texte-doux); border-top:1px solid #2a2018; margin-top:4px;}
+  .pied{display:flex; justify-content:space-between; align-items:center; padding:10px 18px; font-size:11px; color:var(--texte-doux); border-top:1px solid #2a2018; margin-top:4px;}
+  .pied-version{color:var(--bronze); font-size:10px;}
   .statut{font-size:11px; color:var(--texte-doux); padding:8px 18px 0;}
   .vide{padding:30px; text-align:center; color:var(--texte-doux); font-size:13px;}
 
@@ -275,7 +276,10 @@
     </div>
 
     <div class="statut" id="statut"></div>
-    <div class="pied" id="pied">Hôtel des ventes — SuiviHDV</div>
+    <div class="pied">
+      <span id="pied">Hôtel des ventes — SuiviHDV</span>
+      <span class="pied-version" id="pied-version"></span>
+    </div>
   </div>
 
 <script>
@@ -486,6 +490,7 @@ async function init(){
   const cfg=await api("/api/config");
   sonActif=cfg.sound_enabled;
   document.getElementById("son").checked=sonActif;
+  if(cfg.version) document.getElementById("pied-version").textContent="v"+cfg.version;
   await actualiser();
   setInterval(async()=>{
     const v=await api("/api/version");

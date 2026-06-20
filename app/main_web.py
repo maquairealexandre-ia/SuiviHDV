@@ -392,7 +392,10 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/config":
-            self._send(json.dumps({"sound_enabled": MOTEUR.cfg.get("sound_enabled", True)}))
+            self._send(json.dumps({
+                "sound_enabled": MOTEUR.cfg.get("sound_enabled", True),
+                "version": config.VERSION,
+            }))
             return
 
         if path == "/api/version":

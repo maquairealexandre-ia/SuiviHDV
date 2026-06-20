@@ -10,7 +10,7 @@ import urllib.request
 
 
 APP_NAME = "SuiviHDV"
-VERSION = "1.1.2"   # <-- numéro de version de CETTE build. À incrémenter à chaque release.
+VERSION = "1.1.3"   # <-- numéro de version de CETTE build. À incrémenter à chaque release.
 
 # Dépôt GitHub où sont publiées les releases.
 GITHUB_OWNER = "maquairealexandre-ia"
