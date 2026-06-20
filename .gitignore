@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.spec
+
+# PyInstaller
+app/build/
+app/dist/
+dist/
+
+# Builds & installeurs
+Sortie/
+
+# Config locale (contient des secrets : clés API, etc.)
+app/config.json
+
+# Images de documentation (pas utiles dans le dépôt)
+*.png
+
+# Claude Code
+.claude/settings.local.json

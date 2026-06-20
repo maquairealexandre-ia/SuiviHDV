@@ -1,0 +1,12 @@
+services:
+  suivihdv-sync:
+    build: .
+    container_name: suivihdv-sync
+    ports:
+      - "8766:8766"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - API_KEY=changez-moi-par-un-secret
+      - DATA_DIR=/app/data
+    restart: unless-stopped

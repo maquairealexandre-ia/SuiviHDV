@@ -1,0 +1,11 @@
+SUIVI HOTEL DES VENTES
+======================
+
+Commencez par ouvrir le fichier GUIDE_DEMARRAGE.md
+(clic droit -> ouvrir avec le Bloc-notes, ou n'importe quel lecteur de texte).
+
+Contenu du dossier :
+- GUIDE_DEMARRAGE.md ....... le guide a lire en premier
+- app\ ..................... le code de l'application
+- 1_construire_exe.bat ..... double-cliquez pour creer le .exe
+- 2_creer_installeur.iss ... pour creer l'installeur (avec Inno Setup)

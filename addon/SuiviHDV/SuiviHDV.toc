@@ -1,0 +1,10 @@
+## Interface: 120005
+## Title: Suivi HdV
+## Notes: Scanne l'HdV en arrière-plan, enregistre prix et ventes personnelles.
+## Version: 1.0.0
+## Author: Alexandre
+## SavedVariables: SuiviHDVDB
+
+Scanner.lua
+Sales.lua
+SuiviHDV.lua

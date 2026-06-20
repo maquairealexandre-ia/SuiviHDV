@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suivi Hôtel des Ventes</title>
+<style>
+  :root{
+    --or:#ffd100; --or-fonce:#b8932f; --bronze:#6b5a2f;
+    --parchemin:#1a1410; --panneau:#221a12; --panneau-clair:#2a2018;
+    --texte:#f0e6d2; --texte-doux:#c9b285;
+    --rare:#4a9eff; --epique:#a335ee; --commun:#ffffff;
+    --vert:#3fbf6f; --orange:#e0a92f; --rouge:#e0533f;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at top, #2a2018 0%, #14100c 70%),
+      var(--parchemin);
+    color:var(--texte);
+    font-family:'Segoe UI','Trebuchet MS',sans-serif;
+    min-height:100vh; padding:14px;
+    user-select:none; -webkit-user-select:none;
+  }
+
+  /* Cadre principal façon panneau WoW */
+  .cadre{
+    border:3px solid var(--or-fonce);
+    border-radius:8px;
+    background:linear-gradient(180deg,#211a12 0%,#181208 100%);
+    box-shadow:0 0 0 1px #000, inset 0 0 30px rgba(0,0,0,0.6), 0 6px 24px rgba(0,0,0,0.7);
+    overflow:hidden;
+    position:relative;
+  }
+  /* Coins ornementés */
+  .coin{position:absolute; width:22px; height:22px; border:3px solid var(--or); z-index:3;}
+  .coin.tl{top:-3px; left:-3px; border-right:none; border-bottom:none; border-radius:8px 0 0 0;}
+  .coin.tr{top:-3px; right:-3px; border-left:none; border-bottom:none; border-radius:0 8px 0 0;}
+  .coin.bl{bottom:-3px; left:-3px; border-right:none; border-top:none; border-radius:0 0 0 8px;}
+  .coin.br{bottom:-3px; right:-3px; border-left:none; border-top:none; border-radius:0 0 8px 0;}
+
+  /* En-tête */
+  .entete{
+    background:linear-gradient(180deg,#3a2c1a 0%,#241a10 100%);
+    border-bottom:2px solid var(--or-fonce);
+    padding:12px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:12px;
+  }
+  .titre{display:flex; align-items:center; gap:10px;}
+  .titre .blason{
+    width:34px; height:34px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#ffe680,#b8932f 60%,#6b4a12);
+    border:2px solid #2a1f0c; box-shadow:0 0 8px rgba(255,209,0,0.4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; color:#3a2700;
+  }
+  .titre h1{
+    font-size:19px; font-weight:600; color:var(--or);
+    text-shadow:0 1px 2px #000, 0 0 12px rgba(255,209,0,0.3);
+    letter-spacing:0.5px;
+  }
+  .ctrl{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .ctrl label{font-size:12px; color:var(--texte-doux);}
+
+  select, button{
+    font-family:inherit; font-size:13px;
+    background:linear-gradient(180deg,#2e2316,#1c150b);
+    color:var(--texte); border:1px solid var(--bronze);
+    border-radius:4px; padding:6px 12px; cursor:pointer;
+    transition:all 0.15s;
+  }
+  select:hover, button:hover{border-color:var(--or); color:var(--or);}
+  button:active{transform:translateY(1px);}
+  button.principal{
+    background:linear-gradient(180deg,#5a4420,#2e2210);
+    border-color:var(--or); color:var(--or);
+    text-shadow:0 1px 1px #000;
+  }
+  .interrupteur{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--texte-doux); cursor:pointer;}
+  .interrupteur input{accent-color:var(--or-fonce); cursor:pointer;}
+
+  .corps{padding:16px 18px;}
+
+  /* Bandeau d'alerte */
+  .alerte{
+    display:none;
+    background:linear-gradient(180deg,#1a3050,#0e1d35);
+    border:1px solid var(--rare);
+    border-radius:5px; padding:10px 14px; margin-bottom:14px;
+    align-items:center; gap:10px;
+    box-shadow:inset 0 0 18px rgba(74,158,255,0.2), 0 0 12px rgba(74,158,255,0.15);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  .alerte.actif{display:flex;}
+  .alerte .pastille{font-size:18px; color:#7cc3ff;}
+  .alerte span{font-size:13px; color:#bcdcff;}
+  @keyframes pulse{0%,100%{box-shadow:inset 0 0 18px rgba(74,158,255,0.2),0 0 12px rgba(74,158,255,0.15);}50%{box-shadow:inset 0 0 18px rgba(74,158,255,0.35),0 0 20px rgba(74,158,255,0.3);}}
+
+  /* Cartes stats */
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;}
+  .stat{
+    background:linear-gradient(180deg,#2a2014,#1a130a);
+    border:1px solid var(--bronze); border-radius:6px;
+    padding:12px 14px; position:relative; overflow:hidden;
+  }
+  .stat::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--or-fonce),transparent);}
+  .stat .lbl{font-size:11px; color:var(--texte-doux); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px;}
+  .stat .val{font-size:22px; font-weight:600; color:var(--texte); text-shadow:0 1px 2px #000;}
+  .stat .val.or{color:var(--or);}
+
+  /* Tableau */
+  .tableau{border:1px solid var(--bronze); border-radius:6px; overflow:hidden;}
+  .th, .tr{display:grid; grid-template-columns:28px 2.2fr 0.8fr 0.8fr 1.3fr 1.1fr 0.9fr;}
+  .icone-item{width:22px; height:22px; border-radius:3px; border:1px solid #3a2c1a; object-fit:cover; display:block;}
+  .icone-vide{width:22px; height:22px;}
+  .th{
+    background:linear-gradient(180deg,#3a2c1a,#241a10);
+    border-bottom:2px solid var(--or-fonce);
+    padding:9px 14px;
+  }
+  .th span{font-size:11px; color:var(--or); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer;}
+  .th span:hover{color:#fff;}
+  .th .num{text-align:right;}
+  .corps-tableau{max-height:46vh; overflow-y:auto;}
+  .corps-tableau::-webkit-scrollbar{width:10px;}
+  .corps-tableau::-webkit-scrollbar-track{background:#140f08;}
+  .corps-tableau::-webkit-scrollbar-thumb{background:var(--bronze); border-radius:5px;}
+  .tr{padding:8px 14px; border-bottom:1px solid #2a2018; font-size:13px; align-items:center;}
+  .tr:nth-child(odd){background:rgba(255,255,255,0.015);}
+  .tr:hover{background:rgba(255,209,0,0.06);}
+  .tr .obj{color:var(--rare); text-shadow:0 0 6px rgba(74,158,255,0.2);}
+  .tr .num{text-align:right; color:var(--texte);}
+  .tr .or{text-align:right; color:var(--or); font-weight:500;}
+  .tr .pct{text-align:right; font-weight:600;}
+
+  .pied{text-align:center; padding:10px; font-size:11px; color:var(--texte-doux); border-top:1px solid #2a2018; margin-top:4px;}
+  .statut{font-size:11px; color:var(--texte-doux); padding:8px 18px 0;}
+  .vide{padding:30px; text-align:center; color:var(--texte-doux); font-size:13px;}
+
+  /* Onglets */
+  .onglets{display:flex; gap:4px; padding:10px 18px 0; border-bottom:1px solid var(--bronze); margin-bottom:0;}
+  .onglet{padding:7px 16px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;
+          border:1px solid transparent; border-bottom:none; border-radius:4px 4px 0 0; cursor:pointer;
+          color:var(--texte-doux); background:transparent; transition:all 0.15s;}
+  .onglet.actif{background:linear-gradient(180deg,#2a2014,#1a130a); border-color:var(--bronze); color:var(--or);}
+  .onglet:hover:not(.actif){color:var(--texte);}
+  .vue{display:none;}.vue.actif{display:block;}
+
+  /* Tableau marché */
+  .th-m, .tr-m{display:grid; grid-template-columns:28px 2.4fr 0.9fr 1.3fr 1.4fr;}
+  .barre-marche{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .barre-marche input{flex:1; background:#221a12; color:var(--texte); border:1px solid var(--bronze);
+                      border-radius:4px; padding:6px 10px; font-size:12px; font-family:inherit;}
+  .barre-marche button{white-space:nowrap;}
+  .age-marche{font-size:11px; color:var(--texte-doux);}
+
+  /* Tableau annonces */
+  .th-a, .tr-a{display:grid; grid-template-columns:28px 2.2fr 0.6fr 1.2fr 1.2fr 0.8fr;}
+  /* Tableau ventes addon */
+  .th-v, .tr-v{display:grid; grid-template-columns:2.6fr 1.3fr 1.1fr;}
+  .section-titre{font-size:11px; color:var(--or); text-transform:uppercase; letter-spacing:0.5px;
+                 padding:10px 0 6px; font-weight:600;}
+  .scan-info{font-size:11px; color:var(--texte-doux); margin-bottom:10px;}
+</style>
+</head>
+<body>
+  <div class="cadre">
+    <div class="coin tl"></div><div class="coin tr"></div>
+    <div class="coin bl"></div><div class="coin br"></div>
+
+    <div class="entete">
+      <div class="titre">
+        <div class="blason">⚜</div>
+        <h1>Suivi Hôtel des Ventes</h1>
+      </div>
+      <div class="ctrl">
+        <label>Personnage</label>
+        <select id="perso" onchange="changerPerso()"></select>
+        <button class="principal" onclick="actualiser()">⟳ Actualiser</button>
+        <label class="interrupteur"><input type="checkbox" id="son" onchange="basculerSon()"> Son</label>
+        <button onclick="ouvrirReglages()">⚙ Réglages</button>
+      </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="onglets">
+      <button class="onglet actif" onclick="changerOnglet('ventes', this)">Mes ventes</button>
+      <button class="onglet" onclick="changerOnglet('annonces', this)">📋 Annonces</button>
+      <button class="onglet" onclick="changerOnglet('marche', this)">🏪 Marché</button>
+    </div>
+
+    <div class="corps">
+
+      <!-- ===== VUE : MES VENTES ===== -->
+      <div class="vue actif" id="vue-ventes">
+      <div class="alerte" id="alerte">
+        <span class="pastille">🔔</span>
+        <span id="alerte-txt"></span>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="lbl" id="s-revenu-lbl">Revenu total</div><div class="val or" id="s-revenu">—</div></div>
+        <div class="stat"><div class="lbl">Ventes réalisées</div><div class="val" id="s-ventes">—</div></div>
+        <div class="stat"><div class="lbl">Objets différents</div><div class="val" id="s-objets">—</div></div>
+      </div>
+
+      <div class="tableau">
+        <div class="th">
+          <span></span>
+          <span onclick="trier('objet')">Objet</span>
+          <span class="num" onclick="trier('vendus')">Vendus</span>
+          <span class="num" onclick="trier('expires')">Expirés</span>
+          <span class="num" onclick="trier('revenu')">Revenu total</span>
+          <span class="num" onclick="trier('moyen')">Prix moyen</span>
+          <span class="num" onclick="trier('reussite')">Réussite</span>
+        </div>
+        <div class="corps-tableau" id="lignes"></div>
+      </div>
+      </div><!-- fin vue-ventes -->
+
+      <!-- ===== VUE : ANNONCES ===== -->
+      <div class="vue" id="vue-annonces">
+        <div class="scan-info" id="ann-scan-info"></div>
+        <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">
+          <div class="stat"><div class="lbl">Annonces actives</div><div class="val" id="ann-nb">—</div></div>
+          <div class="stat"><div class="lbl">Mise totale</div><div class="val or" id="ann-total">—</div></div>
+          <div class="stat"><div class="lbl">Ventes détectées</div><div class="val" id="ann-ventes">—</div></div>
+        </div>
+
+        <div class="section-titre">Annonces en cours</div>
+        <div class="tableau" style="margin-bottom:16px;">
+          <div class="th th-a">
+            <span></span>
+            <span>Objet</span>
+            <span class="num">Qté</span>
+            <span class="num">Prix unitaire</span>
+            <span class="num">Total</span>
+            <span class="num">Temps</span>
+          </div>
+          <div class="corps-tableau" id="lignes-annonces"></div>
+        </div>
+
+        <div class="section-titre">Ventes récentes (boîte aux lettres)</div>
+        <div class="tableau">
+          <div class="th th-v">
+            <span>Objet vendu</span>
+            <span class="num">Montant</span>
+            <span class="num">Date</span>
+          </div>
+          <div class="corps-tableau" style="max-height:22vh;" id="lignes-ventes-addon"></div>
+        </div>
+      </div><!-- fin vue-annonces -->
+
+      <!-- ===== VUE : MARCHÉ ===== -->
+      <div class="vue" id="vue-marche">
+        <div class="barre-marche">
+          <input id="recherche-marche" placeholder="Rechercher un objet…" oninput="filtrerMarche()">
+          <button class="principal" onclick="rafraichirMarche()">⟳ Actualiser</button>
+          <span class="age-marche" id="age-marche"></span>
+        </div>
+        <div id="joueurs-actifs" style="font-size:11px;color:var(--texte-doux);margin-bottom:10px;"></div>
+        <div class="tableau">
+          <div class="th th-m">
+            <span></span>
+            <span onclick="trierMarche('nom')">Objet</span>
+            <span class="num" onclick="trierMarche('qte')">Quantité</span>
+            <span class="num" onclick="trierMarche('prix')">Prix min</span>
+            <span class="num">Vendeurs</span>
+          </div>
+          <div class="corps-tableau" id="lignes-marche"></div>
+        </div>
+      </div><!-- fin vue-marche -->
+
+    </div>
+
+    <div class="statut" id="statut"></div>
+    <div class="pied" id="pied">Hôtel des ventes — SuiviHDV</div>
+  </div>
+
+<script>
+let triCol="revenu", triDesc=true, sonActif=true;
+
+const _COR='<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#d4a000;border:1px solid #8a6000;vertical-align:middle;margin:0 3px 1px 2px;" title="or"></span>';
+const _CAR='<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#c0c0c0;border:1px solid #808080;vertical-align:middle;margin:0 3px 1px 2px;" title="argent"></span>';
+const _CCU='<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#b87333;border:1px solid #7a4a1e;vertical-align:middle;margin:0 3px 1px 2px;" title="cuivre"></span>';
+function po(c){
+  c=Math.round(c);
+  const g=Math.floor(c/10000), s=Math.floor((c%10000)/100), cu=c%100;
+  let out=[];
+  if(g) out.push(g.toLocaleString('fr-FR')+_COR);
+  if(s) out.push(s+_CAR);
+  if(cu) out.push(cu+_CCU);
+  return out.length?out.join(' '):'0';
+}
+function couleurPct(r){return r>=75?"var(--vert)":(r>=50?"var(--orange)":"var(--rouge)");}
+
+async function api(chemin, opts){
+  const r = await fetch(chemin, opts);
+  return await r.json();
+}
+
+async function actualiser(){
+  setStatut("Lecture des données…");
+  const d = await api("/api/data?perso="+encodeURIComponent(persoActuel()));
+  rendre(d);
+}
+
+function persoActuel(){
+  const sel=document.getElementById("perso");
+  return sel.value||"Tous";
+}
+
+async function changerPerso(){ await actualiser(); }
+
+function rendre(d){
+  if(d.erreur){ document.getElementById("lignes").innerHTML='<div class="vide">'+d.erreur+'</div>'; setStatut(""); return; }
+  // perso
+  const sel=document.getElementById("perso");
+  if(sel.options.length===0 && d.persos){
+    d.persos.forEach(p=>{const o=document.createElement("option");o.value=p;o.textContent=p;sel.appendChild(o);});
+    if(d.perso_courant) sel.value=d.perso_courant;
+  }
+  // stats
+  const perso = persoActuel();
+  const montreOr = perso && perso !== "Tous" && d.or_joueur > 0;
+  document.getElementById("s-revenu-lbl").textContent = montreOr ? "Or du personnage" : "Revenu total";
+  document.getElementById("s-revenu").innerHTML = montreOr ? po(d.or_joueur) : po(d.total);
+  document.getElementById("s-ventes").textContent=d.nb_ventes;
+  document.getElementById("s-objets").textContent=d.lignes.length;
+  // alerte
+  const al=document.getElementById("alerte");
+  if(d.nouvelles && Object.keys(d.nouvelles).length){
+    const tot=Object.values(d.nouvelles).reduce((a,b)=>a+b,0);
+    const det=Object.entries(d.nouvelles).map(([p,v])=>v+" sur "+p).join(", ");
+    document.getElementById("alerte-txt").textContent=tot+" nouvelle(s) vente(s) depuis la dernière fois  ("+det+")";
+    al.classList.add("actif");
+    if(sonActif) jouerSon();
+  } else { al.classList.remove("actif"); }
+  // tri + lignes
+  const lignes=trierLignes(d.lignes);
+  document.getElementById("lignes").innerHTML = lignes.length? lignes.map(r=>`
+    <div class="tr">
+      ${r.item_id ? `<img class="icone-item" src="/api/icone?id=${r.item_id}" alt="">` : '<span class="icone-vide"></span>'}
+      <span class="obj">${r.nom}</span>
+      <span class="num">${r.qte_vendue}</span>
+      <span class="num">${r.qte_expiree}</span>
+      <span class="or">${po(r.revenu_total)}</span>
+      <span class="or" style="font-weight:400;color:var(--texte-doux);">${po(r.prix_moyen)}</span>
+      <span class="pct" style="color:${couleurPct(r.taux_reussite)}">${r.taux_reussite}%</span>
+    </div>`).join("") : '<div class="vide">Aucune vente enregistrée pour ce personnage.</div>';
+  setStatut(d.statut||"Prêt.");
+  if(d.source) document.getElementById("pied").textContent="Source : "+d.source+" · Hôtel des ventes";
+}
+
+function trier(col){ if(triCol===col){triDesc=!triDesc;}else{triCol=col;triDesc=true;} actualiser(); }
+function trierLignes(l){
+  const k={objet:r=>r.nom.toLowerCase(),vendus:r=>r.qte_vendue,expires:r=>r.qte_expiree,revenu:r=>r.revenu_total,moyen:r=>r.prix_moyen,reussite:r=>r.taux_reussite}[triCol]||(r=>r.revenu_total);
+  return [...l].sort((a,b)=>{const x=k(a),y=k(b); if(x<y)return triDesc?1:-1; if(x>y)return triDesc?-1:1; return 0;});
+}
+
+function jouerSon(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type="sine"; o.frequency.setValueAtTime(880,ctx.currentTime);
+    o.frequency.setValueAtTime(1320,ctx.currentTime+0.12);
+    g.gain.setValueAtTime(0.15,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+    o.start(); o.stop(ctx.currentTime+0.4);
+  }catch(e){}
+}
+
+async function basculerSon(){
+  sonActif=document.getElementById("son").checked;
+  await api("/api/son?actif="+(sonActif?1:0));
+}
+async function ouvrirReglages(){ await api("/api/reglages"); setTimeout(actualiser,400); }
+function setStatut(t){ document.getElementById("statut").textContent=t; }
+
+// ===================== ONGLETS =====================
+function changerOnglet(nom, btn){
+  document.querySelectorAll('.onglet').forEach(b=>b.classList.remove('actif'));
+  document.querySelectorAll('.vue').forEach(v=>v.classList.remove('actif'));
+  btn.classList.add('actif');
+  document.getElementById('vue-'+nom).classList.add('actif');
+  if(nom==='marche' && marcheData===null) chargerMarche();
+  if(nom==='annonces' && annoncesData===null) chargerAnnonces();
+}
+
+// ===================== MARCHÉ =====================
+let marcheData=null, marcheTriCol='qte', marcheTriDesc=true;
+
+async function chargerMarche(){
+  document.getElementById("lignes-marche").innerHTML='<div class="vide">Chargement du marché…</div>';
+  const d=await api("/api/marche");
+  if(d.erreur){ document.getElementById("lignes-marche").innerHTML='<div class="vide">'+d.erreur+'</div>'; return; }
+  marcheData=d.lignes;
+  const src=d.source==="nas"?" · via NAS":"";
+  document.getElementById("age-marche").textContent=d.nb_total+" objets · mis à jour "+d.age+src;
+  const jou=d.joueurs_actifs||[];
+  document.getElementById("joueurs-actifs").textContent=jou.length?"Joueurs actifs : "+jou.join(", "):"";
+  filtrerMarche();
+}
+
+async function rafraichirMarche(){
+  document.getElementById("age-marche").textContent="Actualisation en cours…";
+  await api("/api/marche/refresh");
+  setTimeout(chargerMarche, 2000);
+}
+
+function filtrerMarche(){
+  if(!marcheData) return;
+  const q=(document.getElementById("recherche-marche").value||"").toLowerCase();
+  let lignes=q ? marcheData.filter(r=>r.nom.toLowerCase().includes(q)) : marcheData;
+  const k={nom:r=>r.nom.toLowerCase(),qte:r=>r.qte,prix:r=>r.prix_min}[marcheTriCol]||(r=>r.qte);
+  lignes=[...lignes].sort((a,b)=>{const x=k(a),y=k(b); return marcheTriDesc?(y<x?-1:y>x?1:0):(x<y?-1:x>y?1:0);});
+  document.getElementById("lignes-marche").innerHTML=lignes.length?lignes.map(r=>`
+    <div class="tr tr-m">
+      ${r.item_id ? `<img class="icone-item" src="/api/icone?id=${r.item_id}" alt="">` : '<span class="icone-vide"></span>'}
+      <span class="obj">${r.nom}</span>
+      <span class="num">${r.qte.toLocaleString('fr-FR')}</span>
+      <span class="or">${po(r.prix_min)}</span>
+      <span class="num" style="font-size:11px;color:var(--texte-doux)">${(r.sources||r.vendeurs||[]).slice(0,3).join(', ')}</span>
+    </div>`).join(''):'<div class="vide">Aucun résultat.</div>';
+}
+function trierMarche(col){if(marcheTriCol===col){marcheTriDesc=!marcheTriDesc;}else{marcheTriCol=col;marcheTriDesc=true;} filtrerMarche();}
+
+// ===================== ANNONCES =====================
+let annoncesData = null;
+
+async function chargerAnnonces(){
+  document.getElementById("lignes-annonces").innerHTML='<div class="vide">Chargement…</div>';
+  const d = await api("/api/addon");
+  if(d.erreur){
+    document.getElementById("lignes-annonces").innerHTML='<div class="vide">'+d.erreur+'</div>';
+    return;
+  }
+  annoncesData = d;
+  const totalMise = d.annonces.reduce((s,a)=>s+a.prix,0);
+  document.getElementById("ann-nb").textContent = d.annonces.length;
+  document.getElementById("ann-total").innerHTML = po(totalMise);
+  document.getElementById("ann-ventes").textContent = d.ventes.length;
+  document.getElementById("ann-scan-info").textContent =
+    d.nb_items_scan
+      ? `Scan HdV : ${d.nb_items_scan.toLocaleString('fr-FR')} articles (${d.age_scan})`
+      + (d.scan_complet ? '' : ' — partiel')
+      : "Scan HdV non effectué — ouvrez l'Hôtel des Ventes en jeu.";
+
+  function tlLabel(tls){
+    if(!tls) return {txt:'—', col:'var(--texte-doux)'};
+    const h=Math.floor(tls/3600), m=Math.floor((tls%3600)/60);
+    const txt = h>0 ? h+'h '+(m>0?m+'min':'') : m+'min';
+    const col = tls<3600 ? 'var(--rouge)' : tls<28800 ? 'var(--orange)' : 'var(--vert)';
+    return {txt, col};
+  }
+  document.getElementById("lignes-annonces").innerHTML = d.annonces.length
+    ? d.annonces.map(a=>{const tl=tlLabel(a.tls); return `
+      <div class="tr tr-a">
+        ${a.item_id ? `<img class="icone-item" src="/api/icone?id=${a.item_id}" alt="">` : '<span class="icone-vide"></span>'}
+        <span class="obj">${a.nom}</span>
+        <span class="num">${a.qte}</span>
+        <span class="or">${po(a.prix_u)}</span>
+        <span class="or">${po(a.prix)}</span>
+        <span class="num" style="color:${tl.col};font-size:11px;">${tl.txt}</span>
+      </div>`;}).join('')
+    : '<div class="vide">Aucune annonce active.</div>';
+
+  function dateRel(ts){
+    const d=Math.floor((Date.now()/1000-ts)/60);
+    return d<60?`il y a ${d} min`:`il y a ${Math.floor(d/60)}h`;
+  }
+  document.getElementById("lignes-ventes-addon").innerHTML = d.ventes.length
+    ? d.ventes.map(v=>`
+      <div class="tr tr-v">
+        <span class="obj" style="color:var(--texte)">${v.sujet||'—'}</span>
+        <span class="or">${po(v.total)}</span>
+        <span class="num" style="color:var(--texte-doux);font-size:11px;">${dateRel(v.t)}</span>
+      </div>`).join('')
+    : '<div class="vide">Aucune vente détectée — ouvrez votre boîte aux lettres en jeu.</div>';
+}
+
+// ===================== INIT =====================
+async function init(){
+  const cfg=await api("/api/config");
+  sonActif=cfg.sound_enabled;
+  document.getElementById("son").checked=sonActif;
+  await actualiser();
+  setInterval(async()=>{
+    const v=await api("/api/version");
+    if(v.changed){ actualiser(); annoncesData=null; if(document.getElementById('vue-annonces').classList.contains('actif')) chargerAnnonces(); }
+    if(v.marche_changed && marcheData!==null) chargerMarche();
+  },5000);
+}
+init();
+</script>
+</body>
+</html>
